@@ -1,7 +1,6 @@
 [System.Serializable]
 /// <summary>
-/// LLM 决策 JSON 的最小数据模型。
-/// move_to 使用 x/y；kill 不需要额外字段；message 预留给后续对话玩法。
+/// 单 NPC 的 JSON 回复数据。
 /// </summary>
 public class ReturnMes
 {

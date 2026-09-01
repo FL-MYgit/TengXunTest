@@ -1,81 +1,101 @@
+using System.Collections;
+using NavMeshPlus.Components;
+using TMPro;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
-/// NPC 的技能与规则执行层。
-/// AI 只能调用 MoveTo 和 TryKill，真正的坐标边界、身份、范围、冷却和目标选择
-/// 都由这里或 AIGameManager 校验，避免模型生成错误内容破坏游戏规则。
+/// NPC 的移动与说话控制器。
+/// 移动只能通过 NavMeshAgent 完成；绑定失败时角色停在原地，避免穿墙和越界。
 /// </summary>
 public class NPCController : MonoBehaviour
 {
-    [SerializeField] private float civilianMoveSpeed = 1.8f;
-    [SerializeField] private float killerMoveSpeed = 1.8f;
-    [SerializeField] private float killRadius = 1.25f;
-    [SerializeField] private float killCooldown = 10f;
+    [SerializeField] private TMP_Text text; //AI输出文本引用
+    [SerializeField] private float moveSpeed = 1f; //移动速度
+    [SerializeField, Min(0.1f)] private float spawnSampleRadius = 20f; //出生点搜索半径
+    [SerializeField, Min(0.1f)] private float destinationSampleRadius = 3f; //移动最大搜索半径
 
-    private AIGameManager gameManager;
-    private Vector2 destination;
-    private float nextKillTime;
+    private NavMeshAgent navMeshAgent;
+    private bool navMeshReady;
 
-    public int PlayerId { get; private set; }
-    public PlayerRole Role { get; private set; }
-    public bool IsAlive { get; private set; }
-    public float KillCooldownRemaining => Mathf.Max(0f, nextKillTime - Time.time);
-    public Vector2 Position => transform.position;
-
-    /// <summary>每局开始时重置身份、出生位置、存活状态和击杀冷却。</summary>
-    public void Configure(int playerId, PlayerRole role, AIGameManager manager, Vector2 spawnPosition)
+    private void Awake()
     {
-        PlayerId = playerId;
-        Role = role;
-        gameManager = manager;
-        IsAlive = true;
-        transform.position = spawnPosition;
-        destination = spawnPosition;
-        nextKillTime = 0f;
-        SpriteRenderer sprite = GetComponent<SpriteRenderer>();
-        if (sprite != null)
-            sprite.color = role == PlayerRole.Killer ? new Color(0.95f, 0.2f, 0.2f) : new Color(0.2f, 0.75f, 1f);
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        // Agent 不能在 NavMesh 注册前启用，否则 Unity 会报告出生点不在 NavMesh 上。
+        if (navMeshAgent != null) navMeshAgent.enabled = false;
     }
 
-    /// <summary>使用角色对应速度平滑移向目标；杀手速度与平民相等。</summary>
-    private void Update()
+    private IEnumerator Start()
     {
-        if (!IsAlive || gameManager == null || !gameManager.IsRunning) return;
-        float speed = Role == PlayerRole.Killer ? killerMoveSpeed : civilianMoveSpeed;
-        transform.position = Vector2.MoveTowards(transform.position, destination, speed * Time.deltaTime);
+        if (navMeshAgent == null)
+        {
+            Debug.LogError("NPC 缺少 NavMeshAgent，无法移动。", this);
+            yield break;
+        }
+
+        // Physics2D 更新后，NavMeshPlus 才能正确收集 Collider2D。
+        yield return new WaitForFixedUpdate();
+        // NavMeshPlus 在第 1 帧构建 Physics Collider 数据会给出精度警告；等到下一帧再构建。
+        if (Time.frameCount <= 1) yield return null;
+        ConfigureAgent();
+
+        // 先使用已有数据；若数据无效，则根据当前 Collider2D 在运行时重建一次。
+        if (!TryAttachToNavMesh())
+        {
+            NavMeshSurface surface = FindObjectOfType<NavMeshSurface>();
+            if (surface != null)
+            {
+                surface.BuildNavMesh();
+                yield return null;
+                TryAttachToNavMesh();
+            }
+        }
+
+        if (!navMeshReady)
+            Debug.LogError("NPC 无法绑定到 2D NavMesh，已停止移动以防止越界。请检查 NavMeshSurface 和地图碰撞体。", this);
+    }
+
+    private void ConfigureAgent()
+    {
+        navMeshAgent.updateRotation = false;
+        navMeshAgent.updateUpAxis = false;
+        navMeshAgent.speed = moveSpeed;
     }
 
     /// <summary>
-    /// 设置移动目标。目标会被限制在方形场地内；平民明显靠近杀手的目标会被拒绝。
+    /// 初始化NavMesh寻路，自动贴附附近的NavMesh网格
     /// </summary>
-    public void MoveTo(Vector2 targetPosition)
+    /// <returns></returns>
+    private bool TryAttachToNavMesh()
     {
-        if (!IsAlive || gameManager == null || !gameManager.IsRunning) return;
-        // 平民不能执行会主动靠近杀手的模型指令。
-        if (Role == PlayerRole.Civilian && !gameManager.IsSafeCivilianTarget(this, targetPosition)) return;
-        destination = gameManager.ClampToArena(targetPosition);
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, spawnSampleRadius, navMeshAgent.areaMask))
+            return false;
+
+        transform.position = hit.position;
+        navMeshAgent.enabled = true;
+        navMeshReady = navMeshAgent.isOnNavMesh;
+        if (!navMeshReady) navMeshAgent.enabled = false;
+        return navMeshReady;
     }
 
     /// <summary>
-    /// 尝试击杀。只有存活杀手、冷却结束且范围内存在平民时才成功。
-    /// 最近目标的选择由 GameManager 统一完成。
+    /// 目标在墙内或地图外时会被投射到最近的可行走点；找不到时忽略指令。
     /// </summary>
-    public bool TryKill()
+    public void MoveTo(Vector2 target)
     {
-        if (!IsAlive || Role != PlayerRole.Killer || gameManager == null || !gameManager.IsRunning) return false;
-        if (Time.time < nextKillTime) return false;
-        if (!gameManager.TryKillNearest(this, killRadius)) return false;
-        nextKillTime = Time.time + killCooldown;
-        return true;
+        if (!navMeshReady || navMeshAgent == null || !navMeshAgent.isOnNavMesh) return;
+
+        if (NavMesh.SamplePosition(target, out NavMeshHit hit, destinationSampleRadius, navMeshAgent.areaMask))
+            navMeshAgent.SetDestination(hit.position);
+        else
+            Debug.LogWarning($"目标位置 {target} 不在 NavMesh 上，已忽略本次移动。", this);
     }
 
-    /// <summary>将角色标记死亡、停止移动，并用灰色半透明表现尸体。</summary>
-    public void Die()
+    public void Say(string message)
     {
-        if (!IsAlive) return;
-        IsAlive = false;
-        destination = transform.position;
-        SpriteRenderer sprite = GetComponent<SpriteRenderer>();
-        if (sprite != null) sprite.color = new Color(0.25f, 0.25f, 0.25f, 0.65f);
+        if (text != null) text.text = message;
+
+        if (!string.IsNullOrWhiteSpace(message))
+            Debug.Log($"NPC：{message}", this);
     }
 }

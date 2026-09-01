@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb38717cd4f34b94085e5b38f097a8fa, type: 3}
+  m_Name: AppleTree
+  m_EditorClassIdentifier: 
+  Name: "\u82F9\u679C\u6811"
+  Description: "\u4E00\u9897\u9AD8\u5927\u7684\u82F9\u679C\u6811\uFF0C\u4E0A\u9762\u7ED3\u4E86\u8BB8\u591A\u82F9\u679C"
+  pos: {x: 11.076017, y: 0.5601534, z: 0}

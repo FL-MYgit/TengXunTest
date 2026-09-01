@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: 8255922162498426147}
   - component: {fileID: 7369389094591478655}
   - component: {fileID: 606400339913408517}
+  - component: {fileID: 2765850475312003401}
+  - component: {fileID: 4801333237259257581}
+  - component: {fileID: 3745166137189596293}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -115,8 +118,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agent: {fileID: 606400339913408517}
   controller: {fileID: 0}
-  CurrentMessage: 
   maxResendTime: 3
+  CurrentMessage: 
 --- !u!114 &606400339913408517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -124,7 +127,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5436133691225552751}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4326d5ae3b03ff55847035351559f4e, type: 3}
   m_Name: 
@@ -164,4 +167,88 @@ MonoBehaviour:
     \"\u884C\u52A8\u540D\u79F0\", \"x\": \u76EE\u6807X\u5750\u6807, \"y\": \u76EE\u6807y\u5750\u6807,
     \"message\": \"\u8981\u8BF4\u7684\u8BDD\"}\r\n\u53EF\u7528\u7684\u884C\u52A8\u540D\u79F0\u6709\uFF1A
     move_to\u3001say\u3001attack\u3002\r\n\u5982\u679C\u65E0\u6CD5\u51B3\u5B9A\uFF0C\u8BF7\u8FD4\u56DE
-    {\"action\": \"idle\"}\u3002\n\u4F60\u53EA\u80FD\u5728(-5<x<5,-3<y<3)\u7684\u8303\u56F4\u5185\u79FB\u52A8\n\u6CA1\u6709\u660E\u786E\u79FB\u52A8\u6307\u4EE4\u65F6\u4E0D\u8981\u79FB\u52A8"
+    {\"action\": \"idle\"}\u3002\n\u6CA1\u6709\u660E\u786E\u79FB\u52A8\u6307\u4EE4\u65F6\u4E0D\u8981\u79FB\u52A8"
+--- !u!70 &2765850475312003401
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5436133691225552751}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.029175699, y: -0.27925497}
+  m_Size: {x: 0.8807255, y: 0.8807255}
+  m_Direction: 0
+--- !u!195 &4801333237259257581
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5436133691225552751}
+  m_Enabled: 0
+  m_AgentTypeID: 0
+  m_Radius: 0.42
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 0.93
+  m_BaseOffset: 0.76
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!50 &3745166137189596293
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5436133691225552751}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

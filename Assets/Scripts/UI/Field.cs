@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>把输入框结束编辑时的文本交给单 NPC AI。</summary>
 public class Field : MonoBehaviour
 {
     [SerializeField] private TMP_InputField field;
@@ -11,17 +9,19 @@ public class Field : MonoBehaviour
 
     private void Awake()
     {
-        field = GetComponent<TMP_InputField>();
-
-        field.onEndEdit.AddListener(SendMessageTo);
+        if (field == null) field = GetComponent<TMP_InputField>();
+        if (field != null) field.onEndEdit.AddListener(SendMessageTo);
     }
 
     public void SendMessageTo(string message)
     {
-        if(message != null)
-        {
-            agent.SendMessageToAI(message);
-            field.text = null;
-        }
+        if (agent == null || string.IsNullOrWhiteSpace(message)) return;
+        agent.SendMessageToAI(message);
+        field.text = string.Empty;
+    }
+
+    private void OnDestroy()
+    {
+        if (field != null) field.onEndEdit.RemoveListener(SendMessageTo);
     }
 }
