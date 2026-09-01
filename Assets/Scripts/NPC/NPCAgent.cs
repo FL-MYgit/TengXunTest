@@ -6,6 +6,10 @@ using UnityEngine;
 /// <summary>单 NPC 的非流式模型交互脚本。</summary>
 public class NPCAgent : MonoBehaviour
 {
+    //请求开始或结束时通知 UI。true 表示 AI 正在生成回复
+    public event Action<bool> ThinkingChanged;
+    public bool IsThinking => requestInProgress;
+
     [SerializeField] private LLMAgent agent; //LLMAgent引用
     [SerializeField] private NPCController controller; //NPCControlleryinyong
     [Min(0)] public int maxResendTime = 3; //最大重传次数
@@ -30,6 +34,7 @@ public class NPCAgent : MonoBehaviour
         if (agent == null) { Debug.LogError("NPCAgent 没有绑定 LLMAgent。", this); return; }
 
         requestInProgress = true;
+        ThinkingChanged?.Invoke(true);
         CurrentMessage = message.Trim();
 
         try 
@@ -39,7 +44,11 @@ public class NPCAgent : MonoBehaviour
         {
             if (!shuttingDown) Debug.LogWarning($"AI 请求失败：{exception.Message}", this);
         }
-        finally { requestInProgress = false; }
+        finally
+        {
+            requestInProgress = false;
+            if (!shuttingDown) ThinkingChanged?.Invoke(false);
+        }
     }
 
     /// <summary>

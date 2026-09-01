@@ -25,8 +25,7 @@ public class GameWorldMes : MonoBehaviour
     }
 
     /// <summary>
-    /// 顶层 List 和 ScriptableObject 引用不适合直接交给 JsonUtility，
-    /// 因此先转换成普通数据对象，再通过包含 items 字段的根对象序列化。
+    /// 先转换成普通数据对象，再通过包含 items 字段的根对象序列化。
     /// </summary>
     public string ToJson()
     {
